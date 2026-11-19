@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python od zera, część 2 — operacje na tekstach</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #EFF1EA;
+    --paper: #F8F8F4;
+    --ink: #1B231E;
+    --ink-soft: #4B564F;
+    --line: #D9DCD1;
+    --editor: #1E2822;
+    --editor-text: #E9ECE4;
+    --mustard: #D9A62B;
+    --mustard-deep: #9C7614;
+    --teal: #1F6E63;
+    --teal-deep: #164E46;
+    --coral: #C1443C;
+    --radius: 10px;
+    --maxw: 700px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size:16px;
+    line-height:1.6;
+  }
+
+  h1,h2,h3,.display{
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--ink);
+    line-height:1.15;
+    margin:0;
+  }
+
+  code, .mono, pre{
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  a{ color:var(--teal-deep); }
+
+  /* ---------- layout shell ---------- */
+  .shell{
+    display:grid;
+    grid-template-columns: 232px minmax(0,1fr);
+    gap:0;
+    max-width:1180px;
+    margin:0 auto;
+  }
+
+  nav.toc{
+    position:sticky;
+    top:0;
+    align-self:start;
+    height:100vh;
+    overflow-y:auto;
+    padding:32px 18px 32px 28px;
+    border-right:1px solid var(--line);
+  }
+
+  nav.toc .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    margin-bottom:26px;
+    color:var(--ink);
+  }
+
+  nav.toc .brand span{ color:var(--teal-deep); }
+
+  nav.toc ol{
+    list-style:none;
+    margin:0; padding:0;
+    counter-reset:lesson;
+  }
+
+  nav.toc li{ margin-bottom:4px; }
+
+  nav.toc a{
+    counter-increment:lesson;
+    display:flex;
+    gap:10px;
+    align-items:baseline;
+    text-decoration:none;
+    color:var(--ink-soft);
+    font-size:0.88rem;
+    padding:6px 8px;
+    border-radius:7px;
+    transition:background .15s ease, color .15s ease;
+  }
+
+  nav.toc a::before{
+    content: counter(lesson, decimal-leading-zero);
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.76rem;
+    color:var(--mustard-deep);
+    flex-shrink:0;
+  }
+
+  nav.toc a:hover{ background:var(--paper); color:var(--ink); }
+  nav.toc a.active{ background:#fff; color:var(--ink); box-shadow: inset 3px 0 0 var(--teal); }
+
+  main{ min-width:0; }
+
+  section{
+    padding:64px 48px;
+    border-bottom:1px solid var(--line);
+    max-width:940px;
+  }
+  section .inner{ max-width:var(--maxw); }
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding:72px 48px 56px;
+    border-bottom:1px solid var(--line);
+  }
+  .hero .kicker{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.85rem;
+    color:var(--teal-deep);
+    margin-bottom:18px;
+  }
+  .hero h1{
+    font-size:2.6rem;
+    max-width:11.5ch;
+    margin-bottom:20px;
+    font-weight:700;
+  }
+  .hero p.lead{
+    max-width:52ch;
+    color:var(--ink-soft);
+    font-size:1.05rem;
+    margin-bottom:34px;
+  }
+  .hero .cta{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--ink);
+    color:var(--paper);
+    text-decoration:none;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    padding:13px 22px;
+    border-radius:8px;
+  }
+  .hero .cta:hover{ background:var(--teal-deep); }
+
+  .hero-grid{
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap:40px;
+    align-items:center;
+  }
+  @media (max-width:860px){ .hero-grid{ grid-template-columns:1fr; } }
+
+  /* fake terminal */
+  .terminal{
+    background:var(--editor);
+    color:var(--editor-text);
+    border-radius:var(--radius);
+    padding:22px 24px;
+    box-shadow: 0 18px 40px -18px rgba(20,30,24,0.45);
+  }
+  .terminal .bar{
+    display:flex; gap:7px; margin-bottom:16px;
+  }
+  .terminal .bar span{
+    width:9px; height:9px; border-radius:50%;
+    background:#3A4A3E;
+  }
+  .terminal .line{ white-space:pre; font-size:0.92rem; }
+  .terminal .line .prompt{ color:#7FA88F; }
+  .terminal .line .str{ color:var(--mustard); }
+  .terminal .out{ color:#B9C4B4; }
+  .caret{
+    display:inline-block; width:8px; height:1.1em;
+    background:var(--mustard);
+    vertical-align:text-bottom;
+    animation: blink 1s steps(1) infinite;
+  }
+  @media (prefers-reduced-motion: reduce){ .caret{ animation:none; } }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  /* ---------- lesson content ---------- */
+  .lesson-num{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--mustard-deep);
+    font-size:0.85rem;
+    margin-bottom:10px;
+  }
+  section h2{
+    font-size:1.7rem;
+    margin-bottom:18px;
+  }
+  section h3{
+    font-size:1.05rem;
+    margin:28px 0 10px;
+  }
+  section p{ margin:0 0 16px; }
+  section ul, section ol.steps{ margin:0 0 18px; padding-left:20px; }
+  section li{ margin-bottom:6px; }
+
+  pre.code{
+    background:var(--editor);
+    color:var(--editor-text);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    overflow-x:auto;
+    font-size:0.9rem;
+    line-height:1.55;
+    margin:0 0 18px;
+  }
+  pre.code .c1{ color:#7FA88F; } /* comment */
+  pre.code .kw{ color:#7EB8D9; } /* keyword */
+  pre.code .fn{ color:var(--mustard); } /* function */
+  pre.code .st{ color:#D9B96A; } /* string */
+  pre.code .nu{ color:#C98B6B; } /* number */
+
+  .note{
+    border-left:3px solid var(--teal);
+    background:var(--paper);
+    padding:12px 16px;
+    border-radius:0 8px 8px 0;
+    font-size:0.92rem;
+    color:var(--ink-soft);
+    margin:0 0 18px;
+  }
+  .note strong{ color:var(--ink); }
+
+  details.exercise{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 18px;
+    margin-top:8px;
+  }
+  details.exercise summary{
+    cursor:pointer;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:0.92rem;
+    color:var(--teal-deep);
+  }
+  details.exercise .answer{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px dashed var(--line);
+    font-size:0.92rem;
+  }
+
+  /* ---------- cheatsheet ---------- */
+  .cheat-grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:14px;
+  }
+  @media (max-width:640px){ .cheat-grid{ grid-template-columns:1fr; } }
+  .cheat-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:0.88rem;
+    margin:0 0 8px;
+    color:var(--teal-deep);
+  }
+  .cheat-card pre{
+    margin:0;
+    background:none;
+    padding:0;
+    color:var(--ink);
+    font-size:0.82rem;
+    line-height:1.6;
+  }
+
+  /* ---------- quiz ---------- */
+  .quiz-q{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    margin-bottom:14px;
+  }
+  .quiz-q p.q-text{ font-weight:600; margin-bottom:10px; }
+  .quiz-q label{
+    display:block;
+    padding:8px 10px;
+    border-radius:7px;
+    cursor:pointer;
+    font-size:0.94rem;
+  }
+  .quiz-q label:hover{ background:#fff; }
+  .quiz-q input{ margin-right:8px; }
+  .quiz-q.correct{ box-shadow: inset 0 0 0 2px var(--teal); }
+  .quiz-q.incorrect{ box-shadow: inset 0 0 0 2px var(--coral); }
+  #quiz-check{
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    padding:12px 22px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:0.95rem;
+  }
+  #quiz-check:hover{ background:var(--teal-deep); }
+  #quiz-result{
+    margin-top:14px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+  }
+
+  footer{
+    padding:40px 48px 64px;
+    color:var(--ink-soft);
+    font-size:0.88rem;
+    max-width:940px;
+  }
+
+  /* mobile nav collapse */
+  @media (max-width:880px){
+    .shell{ grid-template-columns: 1fr; }
+    nav.toc{
+      position:sticky; top:0; height:auto;
+      display:flex; overflow-x:auto; gap:4px;
+      padding:14px 16px;
+      border-right:none; border-bottom:1px solid var(--line);
+      background:var(--bg);
+      z-index:5;
+    }
+    nav.toc .brand{ display:none; }
+    nav.toc ol{ display:flex; gap:4px; }
+    nav.toc li{ margin:0; }
+    nav.toc a{ white-space:nowrap; }
+    .hero, section{ padding:44px 22px; }
+    .hero h1{ font-size:2rem; }
+  }
+
+  nav.toc ol{ counter-reset:lesson -1; }
+  .exercise{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; margin:10px 0 8px; }
+  .exercise .ex-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:0.95rem; color:var(--teal-deep); margin-bottom:6px; }
+  .exercise > p{ margin:0 0 12px; font-size:0.95rem; }
+  .exercise > pre.code{ margin-bottom:12px; }
+  details.solution summary{ cursor:pointer; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:0.88rem; color:var(--ink); }
+  details.solution .answer{ margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); font-size:0.92rem; }
+  details.solution .answer pre.code{ margin-bottom:8px; }
+  p code, li code, td code, summary code, .note code, .ex-title code{ background:#E3E6DB; padding:1px 6px; border-radius:5px; font-size:0.88em; }
+  summary:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+
+  nav.toc ol{ counter-reset:lesson -1; }
+  .hero h1{ max-width:15ch; }
+  p code, li code, td code, summary code, .note code, .ex-title code{
+    background:#E3E6DB; padding:1px 6px; border-radius:5px; font-size:0.88em;
+  }
+  pre.code:has(+ pre.out){ margin-bottom:0; border-radius:var(--radius) var(--radius) 0 0; }
+  pre.out{
+    background:#fff; color:var(--ink);
+    border:1px solid var(--line); border-top:none;
+    border-radius:0 0 var(--radius) var(--radius);
+    padding:12px 20px 14px; margin:0 0 18px;
+    font-size:0.88rem; line-height:1.55; overflow-x:auto;
+  }
+  pre.out::before{
+    content:"Wynik"; display:block;
+    font-family:'Space Grotesk', sans-serif; font-weight:600;
+    font-size:0.74rem; color:var(--teal-deep); margin-bottom:6px;
+  }
+  .exercise{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; margin:10px 0 8px; }
+  .exercise .ex-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:0.95rem; color:var(--teal-deep); margin-bottom:6px; }
+  .exercise > p{ margin:0 0 12px; font-size:0.95rem; }
+  details.solution summary{ cursor:pointer; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:0.88rem; color:var(--ink); }
+  details.solution .answer{ margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); }
+  details.solution .answer pre.code{ margin-bottom:8px; }
+  details.solution .answer pre.code:has(+ pre.out){ margin-bottom:0; }
+  details.solution .answer pre.out{ margin-bottom:0; }
+  section ol.plain{ margin:0 0 18px; padding-left:20px; }
+  .table-wrap{ overflow-x:auto; }
+  table.ref{ border-collapse:collapse; width:100%; margin:0 0 18px; font-size:0.9rem; background:var(--paper); }
+  table.ref th, table.ref td{ border:1px solid var(--line); padding:8px 12px; text-align:left; vertical-align:top; }
+  table.ref th{ background:#E3E6DB; font-family:'Space Grotesk', sans-serif; font-size:0.85rem; }
+  table.idx td{ text-align:center; font-family:'JetBrains Mono', monospace; }
+  table.idx{ width:auto; min-width:360px; }
+  .cheat-card{ min-width:0; }
+  .cheat-card pre{ overflow-x:auto; }
+  td code{ white-space:pre-wrap; }
+  a:focus-visible, button:focus-visible, summary:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="toc" aria-label="Spis lekcji"><div class="brand">Python <span>część 2</span></div><ol><li><a href="#start">Tekst, czyli str</a></li><li><a href="#laczenie">Łączenie i f-string</a></li><li><a href="#indeksy">Długość i indeksy</a></li><li><a href="#wycinki">Wycinki</a></li><li><a href="#petle">Pętla i operator in</a></li><li><a href="#metody">Metody tekstowe</a></li><li><a href="#podzial">split i join</a></li><li><a href="#porownania">Porównywanie</a></li><li><a href="#kody">ord() i chr()</a></li><li><a href="#projekty">Mini-projekty</a></li><li><a href="#sciaga">Ściągawka</a></li><li><a href="#quiz">Quiz</a></li></ol></nav>
+<main>
+<header class="hero"><div class="hero-grid"><div>
+<div class="kicker">część 2 &mdash; operacje na tekstach</div>
+<h1>Tnij, sklejaj i szyfruj tekst.</h1>
+<p class="lead">W części pierwszej poznałeś print, input, zmienne, warunki, pętle i funkcje. Teraz zastosujesz je do tekstu: policzysz litery, odwrócisz słowo i napiszesz własny szyfr.</p>
+<a class="cta" href="#start">Zaczynamy ↓</a></div>
+<div class="terminal" aria-hidden="true"><div class="bar"><span></span><span></span><span></span></div>
+<div class="line"><span class="prompt">&gt;&gt;&gt; </span><span class="str">slowo = "Python"</span></div>
+<div class="line"><span class="prompt">&gt;&gt;&gt; </span><span class="str">slowo[::-1]</span></div>
+<div class="line out">'nohtyP'<span class="caret"></span></div></div>
+</div></header><section id="start"><div class="inner"><div class="lesson-num">Lekcja 00</div><h2>Tekst, czyli str</h2>
+<p>Tekst w Pythonie ma typ <code>str</code> (z angielskiego <em>string</em>, czyli ciąg znaków). Znakiem jest litera, cyfra, spacja albo znak interpunkcyjny. Tekst zapisujesz w cudzysłowie <code>" "</code> albo w apostrofach <code>' '</code> &mdash; ważne, żeby zamknąć go tym samym znakiem, którym go otworzyłeś.</p>
+<pre class="code">imie = "Ola"
+miasto = 'Rybnik'
+print(imie, miasto)</pre><pre class="out">Ola Rybnik</pre>
+<p>Gdy w tekście chcesz użyć apostrofu, otocz go cudzysłowami (i odwrotnie):</p>
+<pre class="code">print("To jest 'cytat' w tekście")
+print('A to jest "cudzysłów" w apostrofach')</pre><pre class="out">To jest 'cytat' w tekście
+A to jest "cudzysłów" w apostrofach</pre>
+<h3>Znaki specjalne</h3>
+<p>Ukośnik <code>\</code> w tekście zaczyna zapis znaku specjalnego:</p>
+<div class="table-wrap"><table class="ref"><thead><tr><th>Zapis</th><th>Znaczenie</th></tr></thead><tbody>
+<tr><td><code>\n</code></td><td>przejście do nowej linii</td></tr>
+<tr><td><code>\t</code></td><td>tabulator (większy odstęp)</td></tr>
+<tr><td><code>\"</code></td><td>cudzysłów wewnątrz tekstu w cudzysłowie</td></tr>
+<tr><td><code>\\</code></td><td>sam ukośnik</td></tr>
+</tbody></table></div>
+<pre class="code">print("Pierwsza linia\nDruga linia")
+print("Imię:\tOla")
+print("Powiedziała: \"Cześć!\"")</pre><pre class="out">Pierwsza linia
+Druga linia
+Imię:	Ola
+Powiedziała: "Cześć!"</pre>
+<div class="note"><strong>Pusty tekst</strong> <code>""</code> nie ma żadnych znaków. Przyda się jako punkt startowy, gdy będziesz budować wynik litera po literze. <strong>Uwaga:</strong> cyfry w cudzysłowie to nadal tekst &mdash; <code>"5"</code> nie jest liczbą <code>5</code>.</div>
+<p>Programy z tego kursu uruchomisz tak samo jak w części pierwszej: w Thonny albo na pickcode.io.</p>
+<div class="exercise"><div class="ex-title">Ćwiczenie: trzy linie jednym print</div>
+<p>Wypisz jednym poleceniem <code>print</code> w trzech osobnych liniach: swoje imię, klasę i miasto.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">print("Ola\n2A\nRybnik")</pre><pre class="out">Ola
+2A
+Rybnik</pre></div></details></div></div></section>
+<section id="laczenie"><div class="inner"><div class="lesson-num">Lekcja 01</div><h2>Łączenie, powielanie i f-stringi</h2>
+<p>Na tekstach działają dwa znane Ci operatory, ale znaczą coś innego niż przy liczbach.</p>
+<h3>Łączenie: +</h3>
+<p>Plus skleja teksty w jeden (to <strong>konkatenacja</strong>). Nie dodaje spacji &mdash; musisz je wstawić sam.</p>
+<pre class="code">imie = "Ala"
+nazwisko = "Kowalska"
+print(imie + nazwisko)
+print(imie + " " + nazwisko)</pre><pre class="out">AlaKowalska
+Ala Kowalska</pre>
+<h3>Powielanie: *</h3>
+<p>Mnożenie tekstu przez liczbę całkowitą powtarza go tyle razy.</p>
+<pre class="code">print("ha" * 3)
+print("-" * 20)</pre><pre class="out">hahaha
+--------------------</pre>
+<h3>Tekst i liczba</h3>
+<p>Nie możesz skleić tekstu z liczbą. Zamień liczbę na tekst funkcją <code>str()</code>.</p>
+<pre class="code">wiek = 17
+print("Mam " + wiek + " lat")</pre><pre class="out">TypeError: can only concatenate str (not "int") to str</pre><pre class="code">wiek = 17
+print("Mam " + str(wiek) + " lat")</pre><pre class="out">Mam 17 lat</pre>
+<h3>f-string, czyli wygodne wstawianie wartości</h3>
+<p>Wpisz literę <code>f</code> przed cudzysłowem, a zmienne i wyrażenia umieszczaj w klamrach <code>{ }</code>. Python sam wstawi ich wartości i zamieni je na tekst.</p>
+<pre class="code">imie = "Ola"
+wiek = 17
+print(f"Cześć, {imie}! Masz {wiek} lat.")
+print(f"Za rok będziesz mieć {wiek + 1} lat.")</pre><pre class="out">Cześć, Ola! Masz 17 lat.
+Za rok będziesz mieć 18 lat.</pre>
+<div class="note"><strong>Pamiętaj:</strong> <code>input()</code> zawsze zwraca tekst. Dlatego <code>"5" + "5"</code> daje <code>"55"</code>, a nie <code>10</code>. Liczby z <code>input()</code> zamieniaj na <code>int()</code>, jak w części pierwszej.</div>
+<div class="exercise"><div class="ex-title">Ćwiczenie: wizytówka</div>
+<p>Zapytaj użytkownika o imię i miasto, a potem wypisz zdanie w formie: <em>Ola mieszka w mieście Rybnik.</em> Użyj f-stringa.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">imie = input("Jak masz na imię? ")
+miasto = input("W jakim mieście mieszkasz? ")
+print(f"{imie} mieszka w mieście {miasto}.")</pre><pre class="out">Jak masz na imię? Ola
+W jakim mieście mieszkasz? Rybnik
+Ola mieszka w mieście Rybnik.</pre></div></details></div></div></section>
+<section id="indeksy"><div class="inner"><div class="lesson-num">Lekcja 02</div><h2>Długość tekstu i indeksy</h2>
+<p>Funkcja <code>len()</code> zwraca liczbę znaków w tekście, razem ze spacjami.</p>
+<pre class="code">print(len("Python"))
+print(len("Ala ma kota"))
+print(len(""))</pre><pre class="out">6
+11
+0</pre>
+<h3>Dostęp do pojedynczego znaku</h3>
+<p>Każdy znak ma swój numer, czyli <strong>indeks</strong>. Pierwszy znak ma indeks <strong>0</strong>, a nie 1. Indeks wpisujesz w nawiasach kwadratowych za tekstem. Liczone od końca indeksy są ujemne: ostatni znak to <code>-1</code>.</p>
+<div class="table-wrap"><table class="ref idx"><tbody>
+<tr><th>znak</th><td>P</td><td>y</td><td>t</td><td>h</td><td>o</td><td>n</td></tr>
+<tr><th>indeks</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td></tr>
+<tr><th>od końca</th><td>-6</td><td>-5</td><td>-4</td><td>-3</td><td>-2</td><td>-1</td></tr>
+</tbody></table></div>
+<pre class="code">slowo = "Python"
+print(slowo[0])
+print(slowo[3])
+print(slowo[-1])
+print(slowo[len(slowo) - 1])</pre><pre class="out">P
+h
+n
+n</pre>
+<h3>Dwa typowe błędy</h3>
+<p>Indeks spoza tekstu kończy program błędem:</p>
+<pre class="code">slowo = "Python"
+print(slowo[10])</pre><pre class="out">IndexError: string index out of range</pre>
+<p>Tekst jest <strong>niezmienny</strong> &mdash; nie podmienisz pojedynczej litery. Zamiast tego zbudujesz nowy tekst (jak, dowiesz się w następnej lekcji).</p>
+<pre class="code">slowo = "Python"
+slowo[0] = "J"</pre><pre class="out">TypeError: 'str' object does not support item assignment</pre><div class="exercise"><div class="ex-title">Ćwiczenie: pierwsza i ostatnia litera</div>
+<p>Użytkownik wpisuje słowo. Wypisz jego pierwszą i ostatnią literę.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">slowo = input("Podaj słowo: ")
+print("Pierwsza litera:", slowo[0])
+print("Ostatnia litera:", slowo[-1])</pre><pre class="out">Podaj słowo: Informatyka
+Pierwsza litera: I
+Ostatnia litera: a</pre></div></details></div></div></section>
+<section id="wycinki"><div class="inner"><div class="lesson-num">Lekcja 03</div><h2>Wycinki tekstu</h2>
+<p>Wycinek (po angielsku <em>slice</em>) to fragment tekstu. Zapisujesz go jako <code>tekst[od:do]</code>. Znak o indeksie <em>od</em> <strong>wchodzi</strong> do wycinka, a znak o indeksie <em>do</em> już <strong>nie</strong> (tak samo jak górna granica w <code>range()</code>).</p>
+<pre class="code">tekst = "programowanie"
+print(tekst[0:7])
+print(tekst[:7])
+print(tekst[7:])
+print(tekst[-5:])</pre><pre class="out">program
+program
+owanie
+wanie</pre>
+<ul>
+<li>pominięty początek (<code>[:7]</code>) oznacza &bdquo;od początku&rdquo;,</li>
+<li>pominięty koniec (<code>[7:]</code>) oznacza &bdquo;do końca&rdquo;,</li>
+<li>ujemne indeksy liczą od końca, więc <code>[-5:]</code> to ostatnie pięć znaków.</li>
+</ul>
+<h3>Krok i odwracanie</h3>
+<p>Trzecia liczba to krok: <code>tekst[od:do:krok]</code>. Krok <code>-1</code> idzie od tyłu, więc <code>[::-1]</code> odwraca cały tekst.</p>
+<pre class="code">tekst = "programowanie"
+print(tekst[::2])
+print(tekst[::-1])</pre><pre class="out">pormwne
+einawomargorp</pre>
+<h3>Jak &bdquo;zmienić&rdquo; literę</h3>
+<p>Skoro tekst jest niezmienny, sklejasz nowy z kawałków starego:</p>
+<pre class="code">slowo = "Python"
+nowe = "J" + slowo[1:]
+print(nowe)</pre><pre class="out">Jython</pre><div class="exercise"><div class="ex-title">Ćwiczenie: pocięty tekst</div>
+<p>Dla tekstu <code>"Informatyka"</code> wypisz kolejno: pierwsze 4 litery, resztę tekstu oraz cały tekst od tyłu.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">tekst = "Informatyka"
+print(tekst[:4])
+print(tekst[4:])
+print(tekst[::-1])</pre><pre class="out">Info
+rmatyka
+akytamrofnI</pre></div></details></div></div></section>
+<section id="petle"><div class="inner"><div class="lesson-num">Lekcja 04</div><h2>Pętla po tekście i operator in</h2>
+<p>Pętla <code>for</code> potrafi przejść po tekście znak po znaku. Zmienna pętli przyjmuje po kolei każdą literę.</p>
+<pre class="code">for litera in "Python":
+    print(litera)</pre><pre class="out">P
+y
+t
+h
+o
+n</pre>
+<p>Jeśli potrzebujesz też numeru znaku, przejdź po indeksach:</p>
+<pre class="code">slowo = "kot"
+for i in range(len(slowo)):
+    print(i, slowo[i])</pre><pre class="out">0 k
+1 o
+2 t</pre>
+<h3>Zliczanie w pętli</h3>
+<p>Zacznij od licznika równego 0 i zwiększaj go, gdy znak spełnia warunek. Zapis <code>ile += 1</code> to skrót od <code>ile = ile + 1</code>.</p>
+<pre class="code">tekst = "Programowanie"
+ile = 0
+for litera in tekst.lower():
+    if litera in "aąeęioóuy":
+        ile += 1
+print("Samogłosek:", ile)</pre><pre class="out">Samogłosek: 6</pre>
+<h3>Operator in</h3>
+<p>Operator <code>in</code> sprawdza, czy jeden tekst występuje w drugim. Wynik to <code>True</code> albo <code>False</code>, więc świetnie nadaje się do <code>if</code>.</p>
+<pre class="code">print("ma" in "Ala ma kota")
+print("pies" in "Ala ma kota")
+
+zdanie = "Dziś jest piątek"
+if "piątek" in zdanie:
+    print("Weekend coraz bliżej!")</pre><pre class="out">True
+False
+Weekend coraz bliżej!</pre><div class="exercise"><div class="ex-title">Ćwiczenie: litera a</div>
+<p>Policz, ile razy w zdaniu wpisanym przez użytkownika występuje litera <code>a</code> (małe lub wielkie). Użyj pętli.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">zdanie = input("Wpisz zdanie: ")
+ile = 0
+for znak in zdanie.lower():
+    if znak == "a":
+        ile += 1
+print("Liczba liter a:", ile)</pre><pre class="out">Wpisz zdanie: Ala ma kota
+Liczba liter a: 4</pre></div></details></div></div></section>
+<section id="metody"><div class="inner"><div class="lesson-num">Lekcja 05</div><h2>Metody tekstowe</h2>
+<p>Metoda to funkcja przypisana do danych. Wywołujesz ją po kropce: <code>tekst.upper()</code>. Oto najczęściej używane metody tekstowe:</p>
+<div class="table-wrap"><table class="ref"><thead><tr><th>Metoda</th><th>Co robi</th><th>Przykład</th><th>Wynik</th></tr></thead><tbody><tr><td><code>upper()</code></td><td>zamienia wszystkie litery na wielkie</td><td><code>"ala".upper()</code></td><td><code>'ALA'</code></td></tr><tr><td><code>lower()</code></td><td>zamienia wszystkie litery na małe</td><td><code>"ALA".lower()</code></td><td><code>'ala'</code></td></tr><tr><td><code>capitalize()</code></td><td>pierwsza litera wielka, reszta mała</td><td><code>"oLA".capitalize()</code></td><td><code>'Ola'</code></td></tr><tr><td><code>strip()</code></td><td>usuwa spacje z początku i końca</td><td><code>"  hej  ".strip()</code></td><td><code>'hej'</code></td></tr><tr><td><code>replace(a, b)</code></td><td>zamienia każde a na b</td><td><code>"kot".replace("k", "m")</code></td><td><code>'mot'</code></td></tr><tr><td><code>count(x)</code></td><td>liczy wystąpienia x</td><td><code>"banan".count("a")</code></td><td><code>2</code></td></tr><tr><td><code>find(x)</code></td><td>indeks pierwszego x, a gdy go nie ma: -1</td><td><code>"banan".find("n")</code></td><td><code>2</code></td></tr><tr><td><code>startswith(x)</code></td><td>czy tekst zaczyna się od x</td><td><code>"Python".startswith("Py")</code></td><td><code>True</code></td></tr><tr><td><code>endswith(x)</code></td><td>czy tekst kończy się na x</td><td><code>"plik.txt".endswith(".txt")</code></td><td><code>True</code></td></tr><tr><td><code>isdigit()</code></td><td>czy tekst składa się z samych cyfr</td><td><code>"2026".isdigit()</code></td><td><code>True</code></td></tr><tr><td><code>isalpha()</code></td><td>czy tekst składa się z samych liter</td><td><code>"Ola1".isalpha()</code></td><td><code>False</code></td></tr></tbody></table></div><pre class="code">napis = "Ala ma kota"
+print(napis.upper())
+print(napis.replace("kota", "psa"))
+print(napis.count("a"))
+print(napis.find("ma"))</pre><pre class="out">ALA MA KOTA
+Ala ma psa
+3
+4</pre>
+<div class="note"><strong>Metody nie zmieniają oryginału.</strong> Zwracają nowy tekst, a stary zostaje taki, jaki był. Jeśli chcesz zachować wynik, przypisz go do zmiennej: <code>napis = napis.upper()</code>.</div>
+<pre class="code">napis = "Ala ma kota"
+napis.upper()
+print(napis)
+napis = napis.upper()
+print(napis)</pre><pre class="out">Ala ma kota
+ALA MA KOTA</pre>
+<p>Metody możesz łączyć w łańcuch &mdash; wykonują się od lewej do prawej:</p>
+<pre class="code">print("  oLA  ".strip().capitalize())</pre><pre class="out">Ola</pre><h3>Ćwiczenia</h3>
+<p>Każde zadanie dotyczy innych metod z tabeli, a ich nazwy znajdziesz w tytule. Rozwiąż zadanie samodzielnie, a dopiero potem sprawdź rozwiązanie.</p>
+<div class="exercise"><div class="ex-title">Ćwiczenie 1: wielkie i małe litery (upper, lower)</div>
+<p>Dla tekstu <code>"Informatyka jest Fajna"</code> wypisz go najpierw samymi wielkimi, a potem samymi małymi literami.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">tekst = "Informatyka jest Fajna"
+print(tekst.upper())
+print(tekst.lower())</pre><pre class="out">INFORMATYKA JEST FAJNA
+informatyka jest fajna</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 2: imię z dużej litery (capitalize)</div>
+<p>Użytkownik wpisuje imię w dowolny sposób, np. <code>kUBA</code> albo <code>OLA</code>. Wypisz je w poprawnej postaci: pierwsza litera wielka, pozostałe małe.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">imie = input("Podaj imię: ")
+print(imie.capitalize())</pre><pre class="out">Podaj imię: kUBA
+Kuba</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 3: spacje na brzegach (strip)</div>
+<p>Użytkownik przez pomyłkę wpisał imię ze spacjami na początku i na końcu. Wypisz długość wpisanego tekstu przed usunięciem spacji i po jego oczyszczeniu.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">tekst = input("Wpisz imię: ")
+print("Długość przed:", len(tekst))
+print("Długość po:", len(tekst.strip()))</pre><pre class="out">Wpisz imię:    Ala   
+Długość przed: 9
+Długość po: 3</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 4: podmiana fragmentów (replace)</div>
+<p>W tekście <code>"Ala ma kota"</code> zamień słowo <code>kota</code> na <code>psa</code>. Potem w dacie <code>"2026-11-19"</code> zamień myślniki na kropki.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">print("Ala ma kota".replace("kota", "psa"))
+print("2026-11-19".replace("-", "."))</pre><pre class="out">Ala ma psa
+2026.11.19</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 5: liczenie wystąpień (count)</div>
+<p>Policz, ile razy w słowie <code>"Mississippi"</code> występuje litera <code>s</code>, a ile razy fragment <code>ss</code>.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">slowo = "Mississippi"
+print(slowo.count("s"))
+print(slowo.count("ss"))</pre><pre class="out">4
+2</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 6: szukanie znaku (find)</div>
+<p>Użytkownik wpisuje adres e-mail. Sprawdź, czy zawiera znak <code>@</code>. Jeśli nie, wypisz „Brak znaku @”, a jeśli tak, wypisz jego pozycję (indeks) w adresie. Pamiętaj, że <code>find()</code> zwraca <code>-1</code>, gdy niczego nie znajdzie.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">email = input("Podaj e-mail: ")
+pozycja = email.find("@")
+if pozycja == -1:
+    print("Brak znaku @")
+else:
+    print("Znak @ jest na pozycji", pozycja)</pre><pre class="out">Podaj e-mail: ola@example.com
+Znak @ jest na pozycji 3</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 7: początek i koniec (startswith, endswith)</div>
+<p>Dla nazwy pliku <code>"zdjecie.png"</code> sprawdź, czy kończy się na <code>.png</code>. Dla adresu <code>"https://pl.wikipedia.org"</code> sprawdź, czy zaczyna się od <code>https://</code> oraz czy kończy się na <code>.com</code>. Wypisz trzy wyniki.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">plik = "zdjecie.png"
+adres = "https://pl.wikipedia.org"
+print(plik.endswith(".png"))
+print(adres.startswith("https://"))
+print(adres.endswith(".com"))</pre><pre class="out">True
+True
+False</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 8: sprawdzanie PIN-u (isdigit)</div>
+<p>Użytkownik wpisuje PIN. Program ma sprawdzić, czy to dokładnie 4 cyfry.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">pin = input("Podaj PIN: ")
+if len(pin) == 4 and pin.isdigit():
+    print("PIN poprawny")
+else:
+    print("PIN musi składać się z 4 cyfr")</pre><pre class="out">Podaj PIN: 4821
+PIN poprawny</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 9: samo litery (isalpha)</div>
+<p>Użytkownik wpisuje imię. Jeśli zawiera ono coś poza literami (np. cyfrę), wypisz „Imię może zawierać tylko litery”, a w przeciwnym razie „Dziękujemy!”. Przetestuj program na wpisach <code>Ola</code> i <code>Ola2</code>.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">imie = input("Podaj imię: ")
+if imie.isalpha():
+    print("Dziękujemy!")
+else:
+    print("Imię może zawierać tylko litery")</pre><pre class="out">Podaj imię: Ola2
+Imię może zawierać tylko litery</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 10: porządki w danych (strip, capitalize, replace)</div>
+<p>Dane wpisane przez użytkownika to <code>"  jAN kOWALSKI "</code>. Napraw je tak, aby wypisać <em>Jan kowalski</em>, a potem zamień wszystkie spacje na podkreślniki.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">dane = "  jAN kOWALSKI "
+poprawne = dane.strip().capitalize()
+print(poprawne)
+print(poprawne.replace(" ", "_"))</pre><pre class="out">Jan kowalski
+Jan_kowalski</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 11: nazwa użytkownika (strip, lower, isalpha, len)</div>
+<p>Użytkownik zakłada konto. Usuń spacje z początku i końca wpisanej nazwy i zamień ją na małe litery. Przyjmij nazwę tylko wtedy, gdy ma co najmniej 5 znaków i składa się wyłącznie z liter. Przetestuj program na wpisach <code> AnnaK </code> i <code>Jan7</code>.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">nazwa = input("Nazwa użytkownika: ")
+nazwa = nazwa.strip().lower()
+if nazwa.isalpha() and len(nazwa) &gt;= 5:
+    print("Zapisano:", nazwa)
+else:
+    print("Nazwa musi mieć co najmniej 5 liter i nie może zawierać cyfr")</pre><pre class="out">Nazwa użytkownika:  AnnaK 
+Zapisano: annak</pre></div></details></div></div></section>
+<section id="podzial"><div class="inner"><div class="lesson-num">Lekcja 06</div><h2>Dzielenie i łączenie: split i join</h2>
+<p>Metoda <code>split()</code> tnie tekst na części, a <code>join()</code> skleja je z powrotem. Wynik <code>split()</code> to <strong>lista</strong>: kilka wartości w nawiasach kwadratowych. Listy poznałeś w części pierwszej, więc możesz policzyć elementy przez <code>len()</code>, przejść po nich pętlą <code>for</code> i odwoływać się do nich przez indeksy, tak jak do znaków tekstu.</p>
+<pre class="code">zdanie = "Ala ma kota i psa"
+slowa = zdanie.split()
+print(slowa)
+print(len(slowa))
+for slowo in slowa:
+    print(slowo)</pre><pre class="out">['Ala', 'ma', 'kota', 'i', 'psa']
+5
+Ala
+ma
+kota
+i
+psa</pre>
+<p>Bez argumentu <code>split()</code> dzieli po spacjach. Możesz podać własny separator:</p>
+<pre class="code">dane = "Anna,17,2A"
+print(dane.split(","))</pre><pre class="out">['Anna', '17', '2A']</pre>
+<h3>join: sklejanie z separatorem</h3>
+<p>Zapis <code>separator.join(lista)</code> skleja elementy listy, wstawiając separator między nimi. Separator piszesz <em>przed</em> kropką.</p>
+<pre class="code">slowa = ["Python", "jest", "prosty"]
+print(" ".join(slowa))
+print("-".join(slowa))
+print("".join(slowa))</pre><pre class="out">Python jest prosty
+Python-jest-prosty
+Pythonjestprosty</pre><div class="exercise"><div class="ex-title">Ćwiczenie: liczenie słów</div>
+<p>Policz, ile słów ma zdanie wpisane przez użytkownika.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">zdanie = input("Wpisz zdanie: ")
+print("Liczba słów:", len(zdanie.split()))</pre><pre class="out">Wpisz zdanie: Python jest prosty i szybki
+Liczba słów: 5</pre></div></details></div></div></section>
+<section id="porownania"><div class="inner"><div class="lesson-num">Lekcja 07</div><h2>Porównywanie tekstów</h2>
+<p>Teksty porównujesz tymi samymi operatorami co liczby: <code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>. Pamiętaj, że Python rozróżnia wielkość liter.</p>
+<pre class="code">print("Python" == "Python")
+print("Python" == "python")
+print("Python".lower() == "python")</pre><pre class="out">True
+False
+True</pre>
+<p>Porównania <code>&lt;</code> i <code>&gt;</code> ustawiają teksty w kolejności alfabetycznej, ale według kodów znaków (o nich w lekcji 08). Wielkie litery wypadają <em>przed</em> małymi, a polskie znaki (ą, ę, ł&hellip;) na samym końcu.</p>
+<pre class="code">print("ala" &lt; "ola")
+print("Zebra" &lt; "ala")</pre><pre class="out">True
+True</pre>
+<p>Dlatego przy sprawdzaniu odpowiedzi użytkownika zamień ją na małe litery:</p>
+<pre class="code">login = input("Login: ")
+if login.lower() == "admin":
+    print("Witaj, administratorze!")
+else:
+    print("Nieznany użytkownik")</pre><pre class="out">Login: ADMIN
+Witaj, administratorze!</pre><div class="exercise"><div class="ex-title">Ćwiczenie: mini quiz</div>
+<p>Zapytaj o stolicę Polski. Program ma uznać odpowiedź w dowolnej wielkości liter, także gdy użytkownik zostawi spacje na początku lub końcu.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">odp = input("Stolica Polski? ")
+if odp.strip().lower() == "warszawa":
+    print("Dobrze!")
+else:
+    print("Niestety, to nie ta odpowiedź.")</pre><pre class="out">Stolica Polski?   WARSZAWA 
+Dobrze!</pre></div></details></div></div></section>
+<section id="kody"><div class="inner"><div class="lesson-num">Lekcja 08</div><h2>Kody znaków: ord() i chr()</h2>
+<p>Komputer zapamiętuje każdy znak jako liczbę, czyli jego <strong>kod</strong>. Funkcja <code>ord()</code> zwraca kod znaku, a <code>chr()</code> odwrotnie: zamienia kod na znak.</p>
+<pre class="code">print(ord("a"))
+print(ord("b"))
+print(ord("A"))
+print(chr(100))</pre><pre class="out">97
+98
+65
+d</pre>
+<p>Małe litery <code>a</code>&ndash;<code>z</code> mają kolejne kody <strong>97&ndash;122</strong>, a wielkie <code>A</code>&ndash;<code>Z</code> kody <strong>65&ndash;90</strong>. Dzięki temu możesz &bdquo;przesunąć&rdquo; literę o kilka miejsc w alfabecie:</p>
+<pre class="code">print(chr(ord("a") + 3))
+print(ord("z") - ord("a"))</pre><pre class="out">d
+25</pre>
+<div class="note">Polskie litery (ą, ć, ę, ł&hellip;) nie należą do ciągów <code>a</code>&ndash;<code>z</code> i mają zupełnie inne, odległe kody. W kolejnej lekcji ominiemy je prostym warunkiem.</div>
+<div class="exercise"><div class="ex-title">Ćwiczenie: kody liter</div>
+<p>Wypisz pętlą każdą literę słowa <code>"kot"</code> razem z jej kodem.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">for litera in "kot":
+    print(litera, ord(litera))</pre><pre class="out">k 107
+o 111
+t 116</pre></div></details></div></div></section>
+<section id="projekty"><div class="inner"><div class="lesson-num">Lekcja 09</div><h2>Mini-projekty: palindrom, samogłoski i szyfr</h2>
+<p>Czas połączyć wszystko, czego się nauczyłeś. To klasyczne zadania na tekstach, które pojawiają się też na lekcjach algorytmiki.</p>
+<h3>1. Palindrom</h3>
+<p>Palindrom czyta się tak samo od przodu i od tyłu, np. <em>kajak</em>. Zdanie przed sprawdzeniem zamieniamy na małe litery i usuwamy spacje.</p>
+<pre class="code">def czy_palindrom(tekst):
+    tekst = tekst.lower().replace(" ", "")
+    return tekst == tekst[::-1]
+
+print(czy_palindrom("Kajak"))
+print(czy_palindrom("Kobyła ma mały bok"))
+print(czy_palindrom("Python"))</pre><pre class="out">True
+True
+False</pre>
+<h3>2. Samogłoski w funkcji</h3>
+<p>Ta sama pętla co w lekcji 04, tym razem zamknięta w funkcji, którą można wywołać dla dowolnego tekstu.</p>
+<pre class="code">def ile_samoglosek(tekst):
+    ile = 0
+    for litera in tekst.lower():
+        if litera in "aąeęioóuy":
+            ile = ile + 1
+    return ile
+
+print(ile_samoglosek("Programowanie"))
+print(ile_samoglosek("Python"))</pre><pre class="out">6
+2</pre>
+<h3>3. Szyfr Cezara</h3>
+<p>Szyfr Cezara przesuwa każdą literę o stałą liczbę miejsc w alfabecie (<em>klucz</em>). Przy kluczu 3: a&rarr;d, b&rarr;e, a z&rarr;c, bo po z wracamy na początek alfabetu. Dla jednej litery robimy trzy kroki:</p>
+<ol class="plain">
+<li><code>ord(znak) - ord("a")</code> &mdash; numer litery w alfabecie (a = 0, b = 1&hellip;),</li>
+<li><code>(numer + klucz) % 26</code> &mdash; przesunięcie z zawinięciem na początek (alfabet ma 26 liter),</li>
+<li><code>chr(ord("a") + nowy_numer)</code> &mdash; powrót do litery.</li>
+</ol>
+<p>Znaki spoza <code>a</code>&ndash;<code>z</code> (spacje, cyfry, polskie litery) zostawiamy bez zmian.</p>
+<pre class="code">def szyfruj(tekst, klucz):
+    wynik = ""
+    for znak in tekst:
+        if znak &gt;= "a" and znak &lt;= "z":
+            numer = (ord(znak) - ord("a") + klucz) % 26
+            wynik = wynik + chr(ord("a") + numer)
+        else:
+            wynik = wynik + znak
+    return wynik
+
+tajne = szyfruj("ala ma kota", 3)
+print(tajne)
+print(szyfruj(tajne, -3))</pre><pre class="out">dod pd nrwd
+ala ma kota</pre>
+<p>Deszyfrowanie to szyfrowanie z kluczem przeciwnym &mdash; stąd drugie wywołanie z <code>-3</code>.</p>
+<div class="exercise"><div class="ex-title">Wyzwanie: wielkie litery w szyfrze</div>
+<p>Rozbuduj funkcję <code>szyfruj</code> tak, aby szyfrowała także wielkie litery <code>A</code>&ndash;<code>Z</code> (wielkie nadal mają pozostać wielkie).</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">def szyfruj(tekst, klucz):
+    wynik = ""
+    for znak in tekst:
+        if znak &gt;= "a" and znak &lt;= "z":
+            numer = (ord(znak) - ord("a") + klucz) % 26
+            wynik = wynik + chr(ord("a") + numer)
+        elif znak &gt;= "A" and znak &lt;= "Z":
+            numer = (ord(znak) - ord("A") + klucz) % 26
+            wynik = wynik + chr(ord("A") + numer)
+        else:
+            wynik = wynik + znak
+    return wynik
+
+print(szyfruj("Ala ma Kota!", 3))</pre><pre class="out">Dod pd Nrwd!</pre></div></details></div><div class="exercise"><div class="ex-title">Wyzwanie: anagram</div>
+<p>Dwa słowa są anagramami, jeśli składają się z tych samych liter, np. <em>kot</em> i <em>tok</em>. Sprawdź to, porównując litery obu słów po ich posortowaniu (funkcja <code>sorted()</code> zwraca listę posortowanych znaków).</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">def czy_anagram(a, b):
+    return sorted(a.lower()) == sorted(b.lower())
+
+print(czy_anagram("kot", "tok"))
+print(czy_anagram("Python", "typhon"))
+print(czy_anagram("ala", "ola"))</pre><pre class="out">True
+True
+False</pre></div></details></div></div></section>
+<section id="sciaga"><div class="inner"><div class="lesson-num">Podsumowanie</div>
+<h2>Ściągawka</h2><p>Wszystko z tej części kursu na jednej stronie.</p></div>
+<div class="cheat-grid" style="max-width:940px"><div class="cheat-card"><h4>Tekst i znaki specjalne</h4><pre>imie = "Ola"
+zdanie = 'Cześć'
+"\n" nowa linia  "\t" tab
+"\"" cudzysłów  "\\" ukośnik</pre></div><div class="cheat-card"><h4>Łączenie i f-string</h4><pre>"Ala" + " " + "Kot"
+"ha" * 3
+str(17)
+f"Cześć, {imie}! {wiek + 1}"</pre></div><div class="cheat-card"><h4>Długość i indeksy</h4><pre>len(tekst)
+tekst[0]   # pierwszy
+tekst[-1]  # ostatni
+# tekst jest niezmienny</pre></div><div class="cheat-card"><h4>Wycinki</h4><pre>tekst[2:5]   # od 2 do 4
+tekst[:3]    # początek
+tekst[3:]    # koniec
+tekst[::-1]  # odwrócony</pre></div><div class="cheat-card"><h4>Pętla i in</h4><pre>for znak in tekst:
+    ...
+if "ma" in zdanie:
+    ...</pre></div><div class="cheat-card"><h4>Metody</h4><pre>upper() lower() capitalize()
+strip() replace(a, b)
+count(x) find(x)
+startswith(x) endswith(x)
+isdigit() isalpha()</pre></div><div class="cheat-card"><h4>split i join</h4><pre>zdanie.split()
+dane.split(",")
+" ".join(lista)
+"-".join(lista)</pre></div><div class="cheat-card"><h4>Kody znaków</h4><pre>ord("a")        # 97
+chr(97)         # "a"
+chr(ord("a") + 3)  # "d"</pre></div></div></section>
+<section id="quiz"><div class="inner" style="max-width:940px">
+<div class="lesson-num">Sprawdź się</div><h2>Quiz końcowy</h2><p>Sześć pytań podsumowujących całą część.</p>
+<div class="quiz-q" data-correct="b"><p class="q-text">1. Ile wynosi <code>len("Ala ma kota")</code>?</p><label><input type="radio" name="q1" value="a"> 9</label><label><input type="radio" name="q1" value="b"> 11</label><label><input type="radio" name="q1" value="c"> 10</label></div><div class="quiz-q" data-correct="c"><p class="q-text">2. Co zwróci <code>"Python"[1:4]</code>?</p><label><input type="radio" name="q2" value="a"> Pyt</label><label><input type="radio" name="q2" value="b"> ytho</label><label><input type="radio" name="q2" value="c"> yth</label></div><div class="quiz-q" data-correct="a"><p class="q-text">3. Co wypisze <code>print("ha" * 3 + "!")</code>?</p><label><input type="radio" name="q3" value="a"> hahaha!</label><label><input type="radio" name="q3" value="b"> ha3!</label><label><input type="radio" name="q3" value="c"> ha ha ha !</label></div><div class="quiz-q" data-correct="b"><p class="q-text">4. Co się stanie po wykonaniu <code>slowo = "Python"</code> i <code>slowo[0] = "J"</code>?</p><label><input type="radio" name="q4" value="a"> slowo zmieni się na Jython</label><label><input type="radio" name="q4" value="b"> Python zgłosi błąd, bo tekst jest niezmienny</label><label><input type="radio" name="q4" value="c"> nic się nie stanie</label></div><div class="quiz-q" data-correct="c"><p class="q-text">5. Co zwróci <code>"  python ".strip().upper()</code>?</p><label><input type="radio" name="q5" value="a"> "  PYTHON "</label><label><input type="radio" name="q5" value="b"> "python"</label><label><input type="radio" name="q5" value="c"> "PYTHON"</label></div><div class="quiz-q" data-correct="a"><p class="q-text">6. Co zwróci <code>"Python"[::-1]</code>?</p><label><input type="radio" name="q6" value="a"> nohtyP</label><label><input type="radio" name="q6" value="b"> Python</label><label><input type="radio" name="q6" value="c"> Pytho</label></div>
+<button id="quiz-check" type="button">Sprawdź wynik</button><div id="quiz-result" role="status"></div></div></section><footer><p>Ta część obejmuje podstawowe operacje na tekstach w Pythonie: łączenie i powielanie, f-stringi, indeksowanie, wycinki, pętle po znakach, metody tekstowe, split i join, porównywanie oraz kody znaków.</p>
+<p>Kolejny krok: słowniki i praca z plikami.</p></footer></main></div>
+<script>
+  function highlight(src){
+    const e = src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return e.replace(
+      /(#.*$)|(f?"(?:[^"\\\n]|\\.)*"|f?'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b(if|elif|else|for|while|in|def|return|and|or|not|True|False|None)\b|\b(print|input|len|str|int|float|range|ord|chr|sorted)(?=\()/gm,
+      (m, com, str, num, kw, fn) => {
+        if (com) return '<span class="c1">' + com + '</span>';
+        if (str) return '<span class="st">' + str + '</span>';
+        if (num) return '<span class="nu">' + num + '</span>';
+        if (kw)  return '<span class="kw">' + kw + '</span>';
+        return '<span class="fn">' + fn + '</span>';
+      });
+  }
+  document.querySelectorAll('pre.code').forEach(p => { p.innerHTML = highlight(p.textContent); });
+
+  const links = document.querySelectorAll('nav.toc a');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const link = document.querySelector('nav.toc a[href="#' + entry.target.id + '"]');
+      if (!link) return;
+      links.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+    });
+  }, { rootMargin: '-40% 0px -50% 0px' });
+  links.forEach(l => { const s = document.querySelector(l.getAttribute('href')); if (s) io.observe(s); });
+
+  document.getElementById('quiz-check').addEventListener('click', () => {
+    const qs = document.querySelectorAll('.quiz-q');
+    let score = 0;
+    qs.forEach(q => {
+      const c = q.querySelector('input:checked');
+      q.classList.remove('correct', 'incorrect');
+      if (c && c.value === q.dataset.correct){ score++; q.classList.add('correct'); }
+      else q.classList.add('incorrect');
+    });
+    document.getElementById('quiz-result').textContent =
+      'Wynik: ' + score + ' / ' + qs.length +
+      (score === qs.length ? ' — komplet! 🎉' : score >= qs.length - 1 ? ' — bardzo dobrze!' : ' — wróć do lekcji i spróbuj ponownie.');
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python od zera — kurs dla początkujących</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #EFF1EA;
+    --paper: #F8F8F4;
+    --ink: #1B231E;
+    --ink-soft: #4B564F;
+    --line: #D9DCD1;
+    --editor: #1E2822;
+    --editor-text: #E9ECE4;
+    --mustard: #D9A62B;
+    --mustard-deep: #9C7614;
+    --teal: #1F6E63;
+    --teal-deep: #164E46;
+    --coral: #C1443C;
+    --radius: 10px;
+    --maxw: 700px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    font-size:16px;
+    line-height:1.6;
+  }
+
+  h1,h2,h3,.display{
+    font-family:'Space Grotesk', sans-serif;
+    color:var(--ink);
+    line-height:1.15;
+    margin:0;
+  }
+
+  code, .mono, pre{
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  a{ color:var(--teal-deep); }
+
+  /* ---------- layout shell ---------- */
+  .shell{
+    display:grid;
+    grid-template-columns: 232px minmax(0,1fr);
+    gap:0;
+    max-width:1180px;
+    margin:0 auto;
+  }
+
+  nav.toc{
+    position:sticky;
+    top:0;
+    align-self:start;
+    height:100vh;
+    overflow-y:auto;
+    padding:32px 18px 32px 28px;
+    border-right:1px solid var(--line);
+  }
+
+  nav.toc .brand{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    margin-bottom:26px;
+    color:var(--ink);
+  }
+
+  nav.toc .brand span{ color:var(--teal-deep); }
+
+  nav.toc ol{
+    list-style:none;
+    margin:0; padding:0;
+    counter-reset:lesson;
+  }
+
+  nav.toc li{ margin-bottom:4px; }
+
+  nav.toc a{
+    counter-increment:lesson;
+    display:flex;
+    gap:10px;
+    align-items:baseline;
+    text-decoration:none;
+    color:var(--ink-soft);
+    font-size:0.88rem;
+    padding:6px 8px;
+    border-radius:7px;
+    transition:background .15s ease, color .15s ease;
+  }
+
+  nav.toc a::before{
+    content: counter(lesson, decimal-leading-zero);
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.76rem;
+    color:var(--mustard-deep);
+    flex-shrink:0;
+  }
+
+  nav.toc a:hover{ background:var(--paper); color:var(--ink); }
+  nav.toc a.active{ background:#fff; color:var(--ink); box-shadow: inset 3px 0 0 var(--teal); }
+
+  main{ min-width:0; }
+
+  section{
+    padding:64px 48px;
+    border-bottom:1px solid var(--line);
+    max-width:940px;
+  }
+  section .inner{ max-width:var(--maxw); }
+
+  /* ---------- hero ---------- */
+  .hero{
+    padding:72px 48px 56px;
+    border-bottom:1px solid var(--line);
+  }
+  .hero .kicker{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.85rem;
+    color:var(--teal-deep);
+    margin-bottom:18px;
+  }
+  .hero h1{
+    font-size:2.6rem;
+    max-width:11.5ch;
+    margin-bottom:20px;
+    font-weight:700;
+  }
+  .hero p.lead{
+    max-width:52ch;
+    color:var(--ink-soft);
+    font-size:1.05rem;
+    margin-bottom:34px;
+  }
+  .hero .cta{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--ink);
+    color:var(--paper);
+    text-decoration:none;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    padding:13px 22px;
+    border-radius:8px;
+  }
+  .hero .cta:hover{ background:var(--teal-deep); }
+
+  .hero-grid{
+    display:grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap:40px;
+    align-items:center;
+  }
+  @media (max-width:860px){ .hero-grid{ grid-template-columns:1fr; } }
+
+  /* fake terminal */
+  .terminal{
+    background:var(--editor);
+    color:var(--editor-text);
+    border-radius:var(--radius);
+    padding:22px 24px;
+    box-shadow: 0 18px 40px -18px rgba(20,30,24,0.45);
+  }
+  .terminal .bar{
+    display:flex; gap:7px; margin-bottom:16px;
+  }
+  .terminal .bar span{
+    width:9px; height:9px; border-radius:50%;
+    background:#3A4A3E;
+  }
+  .terminal .line{ white-space:pre; font-size:0.92rem; }
+  .terminal .line .prompt{ color:#7FA88F; }
+  .terminal .line .str{ color:var(--mustard); }
+  .terminal .out{ color:#B9C4B4; }
+  .caret{
+    display:inline-block; width:8px; height:1.1em;
+    background:var(--mustard);
+    vertical-align:text-bottom;
+    animation: blink 1s steps(1) infinite;
+  }
+  @media (prefers-reduced-motion: reduce){ .caret{ animation:none; } }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  /* ---------- lesson content ---------- */
+  .lesson-num{
+    font-family:'JetBrains Mono', monospace;
+    color:var(--mustard-deep);
+    font-size:0.85rem;
+    margin-bottom:10px;
+  }
+  section h2{
+    font-size:1.7rem;
+    margin-bottom:18px;
+  }
+  section h3{
+    font-size:1.05rem;
+    margin:28px 0 10px;
+  }
+  section p{ margin:0 0 16px; }
+  section ul, section ol.steps{ margin:0 0 18px; padding-left:20px; }
+  section li{ margin-bottom:6px; }
+
+  pre.code{
+    background:var(--editor);
+    color:var(--editor-text);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    overflow-x:auto;
+    font-size:0.9rem;
+    line-height:1.55;
+    margin:0 0 18px;
+  }
+  pre.code .c1{ color:#7FA88F; } /* comment */
+  pre.code .kw{ color:#7EB8D9; } /* keyword */
+  pre.code .fn{ color:var(--mustard); } /* function */
+  pre.code .st{ color:#D9B96A; } /* string */
+  pre.code .nu{ color:#C98B6B; } /* number */
+
+  .note{
+    border-left:3px solid var(--teal);
+    background:var(--paper);
+    padding:12px 16px;
+    border-radius:0 8px 8px 0;
+    font-size:0.92rem;
+    color:var(--ink-soft);
+    margin:0 0 18px;
+  }
+  .note strong{ color:var(--ink); }
+
+  details.exercise{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 18px;
+    margin-top:8px;
+  }
+  details.exercise summary{
+    cursor:pointer;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    font-size:0.92rem;
+    color:var(--teal-deep);
+  }
+  details.exercise .answer{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px dashed var(--line);
+    font-size:0.92rem;
+  }
+
+  /* ---------- cheatsheet ---------- */
+  .cheat-grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:14px;
+  }
+  @media (max-width:640px){ .cheat-grid{ grid-template-columns:1fr; } }
+  .cheat-card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px 18px;
+  }
+  .cheat-card h4{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:0.88rem;
+    margin:0 0 8px;
+    color:var(--teal-deep);
+  }
+  .cheat-card pre{
+    margin:0;
+    background:none;
+    padding:0;
+    color:var(--ink);
+    font-size:0.82rem;
+    line-height:1.6;
+  }
+
+  /* ---------- quiz ---------- */
+  .quiz-q{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 20px;
+    margin-bottom:14px;
+  }
+  .quiz-q p.q-text{ font-weight:600; margin-bottom:10px; }
+  .quiz-q label{
+    display:block;
+    padding:8px 10px;
+    border-radius:7px;
+    cursor:pointer;
+    font-size:0.94rem;
+  }
+  .quiz-q label:hover{ background:#fff; }
+  .quiz-q input{ margin-right:8px; }
+  .quiz-q.correct{ box-shadow: inset 0 0 0 2px var(--teal); }
+  .quiz-q.incorrect{ box-shadow: inset 0 0 0 2px var(--coral); }
+  #quiz-check{
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+    padding:12px 22px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:0.95rem;
+  }
+  #quiz-check:hover{ background:var(--teal-deep); }
+  #quiz-result{
+    margin-top:14px;
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:600;
+  }
+
+  footer{
+    padding:40px 48px 64px;
+    color:var(--ink-soft);
+    font-size:0.88rem;
+    max-width:940px;
+  }
+
+  /* mobile nav collapse */
+  @media (max-width:880px){
+    .shell{ grid-template-columns: 1fr; }
+    nav.toc{
+      position:sticky; top:0; height:auto;
+      display:flex; overflow-x:auto; gap:4px;
+      padding:14px 16px;
+      border-right:none; border-bottom:1px solid var(--line);
+      background:var(--bg);
+      z-index:5;
+    }
+    nav.toc .brand{ display:none; }
+    nav.toc ol{ display:flex; gap:4px; }
+    nav.toc li{ margin:0; }
+    nav.toc a{ white-space:nowrap; }
+    .hero, section{ padding:44px 22px; }
+    .hero h1{ font-size:2rem; }
+  }
+
+  nav.toc ol{ counter-reset:lesson -1; }
+  .exercise{ background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; margin:10px 0 8px; }
+  .exercise .ex-title{ font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:0.95rem; color:var(--teal-deep); margin-bottom:6px; }
+  .exercise > p{ margin:0 0 12px; font-size:0.95rem; }
+  .exercise > pre.code{ margin-bottom:12px; }
+  details.solution summary{ cursor:pointer; font-family:'Space Grotesk', sans-serif; font-weight:600; font-size:0.88rem; color:var(--ink); }
+  details.solution .answer{ margin-top:12px; padding-top:12px; border-top:1px dashed var(--line); font-size:0.92rem; }
+  details.solution .answer pre.code{ margin-bottom:8px; }
+  p code, li code, td code, summary code, .note code, .ex-title code{ background:#E3E6DB; padding:1px 6px; border-radius:5px; font-size:0.88em; }
+  summary:focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <nav class="toc" id="toc">
+    <div class="brand">Python <span>od zera</span></div>
+    <ol>
+      <li><a href="#start">Zanim zaczniesz</a></li>
+      <li><a href="#print">print()</a></li>
+      <li><a href="#input">input()</a></li>
+      <li><a href="#zmienne">Zmienne i typy</a></li>
+      <li><a href="#operatory">Operatory</a></li>
+      <li><a href="#warunki">Instrukcje warunkowe</a></li>
+      <li><a href="#petle">Pętle</a></li>
+      <li><a href="#listy">Listy</a></li>
+      <li><a href="#funkcje">Funkcje</a></li>
+      <li><a href="#sciaga">Ściągawka</a></li>
+      <li><a href="#quiz">Quiz</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="kicker">kurs podstaw &mdash; klasa II liceum</div>
+          <h1>Naucz komputer rozumieć Twoje polecenia.</h1>
+          <p class="lead">Python to jeden z najprostszych języków programowania do rozpoczęcia nauki. W tym kursie, krok po kroku, napiszesz swoje pierwsze programy &mdash; bez wcześniejszego doświadczenia.</p>
+          <a class="cta" href="#start">Zaczynamy ↓</a>
+        </div>
+        <div class="terminal">
+          <div class="bar"><span></span><span></span><span></span></div>
+          <div class="line"><span class="prompt">&gt;&gt;&gt; </span><span class="str">print("Witaj, świecie!")</span></div>
+          <div class="line out">Witaj, świecie!<span class="caret"></span></div>
+        </div>
+      </div>
+    </header>
+
+    <section id="start">
+      <div class="inner">
+        <div class="lesson-num">Lekcja 00</div>
+        <h2>Zanim zaczniesz</h2>
+        <p>Python to język programowania &mdash; sposób zapisywania poleceń, które wykonuje komputer. Programy piszesz w zwykłym pliku tekstowym z rozszerzeniem <code>.py</code>, a interpreter Pythona czyta go linijka po linijce i wykonuje.</p>
+        <p>Do pisania kodu potrzebujesz edytora. Na start dobrze sprawdzą się:</p>
+        <ul>
+          <li><strong>Thonny</strong> &mdash; darmowy program do zainstalowania, idealny dla początkujących.</li>
+          <li><strong>pickcode.io</strong> &mdash; działa w przeglądarce, nic nie trzeba instalować.</li>
+        </ul>
+        <div class="note"><strong>Ważne:</strong> Python jest wrażliwy na wielkość liter i wcięcia (spacje na początku linii). Zobaczysz, dlaczego to istotne, przy instrukcjach warunkowych i pętlach.</div>
+      </div>
+    </section>
+
+    <section id="print">
+      <div class="inner">
+        <div class="lesson-num">Lekcja 01</div>
+        <h2>print() &mdash; wypisywanie na ekran</h2>
+        <p>Funkcja <code>print()</code> wyświetla tekst lub wartość w oknie programu. To pierwsze polecenie, które napisze niemal każdy programista.</p>
+        <pre class="code"><span class="fn">print</span>(<span class="st">"Witaj, świecie!"</span>)
+<span class="fn">print</span>(<span class="st">"Python"</span>, <span class="st">"jest"</span>, <span class="st">"proste"</span>)
+<span class="fn">print</span>(<span class="nu">2</span> + <span class="nu">2</span>)</pre>
+        <p>Tekst (napis) zawsze zapisujesz w cudzysłowach <code>" "</code> lub apostrofach <code>' '</code>. Liczby zapisujesz bez nich.</p>
+        <div class="exercise"><div class="ex-title">Ćwiczenie: co wypisze ten kod?</div>
+<p>Zastanów się, co wypisze program, zanim sprawdzisz odpowiedź.</p>
+<pre class="code" style="margin-bottom:8px"><span class="fn">print</span>(<span class="st">"5 + 5"</span>)
+<span class="fn">print</span>(<span class="nu">5</span> + <span class="nu">5</span>)</pre>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><p style="margin:0">Pierwsza linia wypisze dosłowny tekst <code>5 + 5</code> (bo to napis w cudzysłowie). Druga wykona działanie i wypisze <code>10</code>.</p></div></details></div>
+      </div>
+    </section>
+
+    <section id="input">
+      <div class="inner">
+        <div class="lesson-num">Lekcja 02</div>
+        <h2>input() &mdash; pobieranie danych od użytkownika</h2>
+        <p>Funkcja <code>input()</code> zatrzymuje program i czeka, aż użytkownik coś wpisze i naciśnie Enter. To, co wpisze, program zapamiętuje jako tekst.</p>
+        <pre class="code"><span class="kw">imie</span> = <span class="fn">input</span>(<span class="st">"Jak masz na imię? "</span>)
+<span class="fn">print</span>(<span class="st">"Cześć,"</span>, <span class="kw">imie</span>)</pre>
+        <div class="note"><strong>Uwaga:</strong> <code>input()</code> zawsze zwraca tekst (nawet gdy użytkownik wpisze liczbę). Jeśli chcesz na tej liczbie liczyć, musisz ją zamienić &mdash; o tym za chwilę, w lekcji o zmiennych.</div>
+        <div class="exercise"><div class="ex-title">Ćwiczenie: napraw błąd</div>
+<p>Ten kod ma zwrócić sumę dwóch liczb podanych przez użytkownika, ale zamiast liczyć &mdash; skleja teksty (np. dla 2 i 3 wypisze <code>23</code> zamiast <code>5</code>):</p>
+            <pre class="code" style="margin-bottom:8px"><span class="kw">a</span> = <span class="fn">input</span>(<span class="st">"Podaj liczbę: "</span>)
+<span class="kw">b</span> = <span class="fn">input</span>(<span class="st">"Podaj drugą: "</span>)
+<span class="fn">print</span>(<span class="kw">a</span> + <span class="kw">b</span>)</pre>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><p style="margin:0">Rozwiązanie: zamień wpisany tekst na liczbę funkcją <code>int()</code>: <code>a = int(input("Podaj liczbę: "))</code>.</p></div></details></div>
+      </div>
+    </section>
+
+    <section id="zmienne">
+      <div class="inner">
+        <div class="lesson-num">Lekcja 03</div>
+        <h2>Zmienne i typy danych</h2>
+        <p>Zmienna to nazwane miejsce w pamięci komputera, w którym przechowujesz wartość. Nadajesz jej nazwę i przypisujesz wartość znakiem <code>=</code>.</p>
+        <pre class="code"><span class="kw">wiek</span> = <span class="nu">17</span>
+<span class="kw">srednia</span> = <span class="nu">4.5</span>
+<span class="kw">szkola</span> = <span class="st">"Technikum TEB"</span>
+<span class="kw">czy_zdal</span> = <span class="kw">True</span></pre>
+        <p>Podstawowe typy danych, z którymi spotkasz się na start:</p>
+        <ul>
+          <li><code>int</code> &mdash; liczba całkowita, np. <code>17</code></li>
+          <li><code>float</code> &mdash; liczba zmiennoprzecinkowa (z częścią dziesiętną), np. <code>4.5</code></li>
+          <li><code>str</code> &mdash; tekst (string), np. <code>"cześć"</code></li>
+          <li><code>bool</code> &mdash; wartość logiczna, <code>True</code> lub <code>False</code></li>
+          <li><code>list</code> &mdash; lista wielu wartości w nawiasach kwadratowych, np. <code>[3, 5, 8]</code> (poznasz ją w lekcji 07)</li>
+        </ul>
+        <p>Typ zmiennej sprawdzisz funkcją <code>type()</code>, a między typami przekonwertujesz funkcjami <code>int()</code>, <code>float()</code>, <code>str()</code>.</p>
+        <pre class="code"><span class="kw">tekst</span> = <span class="st">"20"</span>
+<span class="kw">liczba</span> = <span class="fn">int</span>(<span class="kw">tekst</span>)
+<span class="fn">print</span>(<span class="kw">liczba</span> + <span class="nu">5</span>)  <span class="c1"># 25</span></pre>
+        <div class="note">Nazwy zmiennych zaczynają się od litery lub podkreślnika, nie zawierają spacji i (zgodnie z konwencją) są pisane małymi literami, np. <code>liczba_uczniow</code>.</div>
+        <div class="exercise"><div class="ex-title">Ćwiczenie: jaki to typ?</div>
+<p style="margin:0">Jaki typ danych będą miały poniższe zmienne: <code>x = 10</code>, <code>y = "10"</code>, <code>z = 10.0</code>, <code>w = False</code>?</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><p style="margin:0">Odpowiedź: <code>x</code> &rarr; int, <code>y</code> &rarr; str, <code>z</code> &rarr; float, <code>w</code> &rarr; bool.</p></div></details></div>
+      </div>
+    </section>
+
+    <section id="operatory">
+      <div class="inner">
+        <div class="lesson-num">Lekcja 04</div>
+        <h2>Operatory i działania matematyczne</h2>
+        <h3>Operatory arytmetyczne</h3>
+        <pre class="code"><span class="nu">10</span> + <span class="nu">3</span>   <span class="c1"># dodawanie &rarr; 13</span>
+<span class="nu">10</span> - <span class="nu">3</span>   <span class="c1"># odejmowanie &rarr; 7</span>
+<span class="nu">10</span> * <span class="nu">3</span>   <span class="c1"># mnożenie &rarr; 30</span>
+<span class="nu">10</span> / <span class="nu">3</span>   <span class="c1"># dzielenie &rarr; 3.333...</span>
+<span class="nu">10</span> // <span class="nu">3</span>  <span class="c1"># dzielenie całkowite &rarr; 3</span>
+<span class="nu">10</span> % <span class="nu">3</span>   <span class="c1"># reszta z dzielenia &rarr; 1</span>
+<span class="nu">10</span> ** <span class="nu">2</span>  <span class="c1"># potęgowanie &rarr; 100</span></pre>
+        <h3>Operatory porównania</h3>
+        <p>Zwracają <code>True</code> albo <code>False</code>: <code>==</code> (równe), <code>!=</code> (różne), <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code>.</p>
+        <h3>Operatory logiczne</h3>
+        <p><code>and</code> (i), <code>or</code> (lub), <code>not</code> (zaprzeczenie) &mdash; łączą warunki, np. <code>wiek &gt;= 13 and wiek &lt;= 19</code>.</p>
+        <div class="exercise"><div class="ex-title">Ćwiczenie: policz wynik</div>
+<p style="margin:0">Ile wyniesie <code>17 % 5</code>?</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><p style="margin:0">Odpowiedź: <code>2</code> &mdash; 17 podzielone przez 5 daje 3 reszty 2, a operator <code>%</code> zwraca właśnie tę resztę.</p></div></details></div>
+      </div>
+    </section>
+
+    <section id="warunki">
+      <div class="inner">
+        <div class="lesson-num">Lekcja 05</div>
+        <h2>Instrukcje warunkowe</h2>
+        <p>Instrukcja <code>if</code> pozwala programowi podjąć decyzję &mdash; wykonać inny kod w zależności od spełnienia warunku.</p>
+        <pre class="code"><span class="kw">wiek</span> = <span class="fn">int</span>(<span class="fn">input</span>(<span class="st">"Podaj swój wiek: "</span>))
+
+<span class="kw">if</span> <span class="kw">wiek</span> &gt;= <span class="nu">18</span>:
+    <span class="fn">print</span>(<span class="st">"Jesteś pełnoletni."</span>)
+<span class="kw">elif</span> <span class="kw">wiek</span> &gt;= <span class="nu">13</span>:
+    <span class="fn">print</span>(<span class="st">"Jesteś nastolatkiem."</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"Jesteś dzieckiem."</span>)</pre>
+        <div class="note"><strong>Wcięcia mają znaczenie.</strong> Kod należący do <code>if</code>, <code>elif</code> lub <code>else</code> musi być wcięty (zwykle 4 spacje). To właśnie wcięcie mówi Pythonowi, co należy do danego warunku.</div>
+        <div class="exercise"><div class="ex-title">Ćwiczenie: dopisz warunek</div>
+<p style="margin:0">Napisz warunek, który sprawdzi, czy liczba <code>n</code> jest parzysta. Podpowiedź: liczba jest parzysta, gdy reszta z dzielenia przez 2 wynosi 0.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><p style="margin:0">Rozwiązanie: <code>if n % 2 == 0: print("parzysta")</code></p></div></details></div>
+      </div>
+    </section>
+
+    <section id="petle">
+      <div class="inner">
+        <div class="lesson-num">Lekcja 06</div>
+        <h2>Pętle</h2>
+        <p>Pętle powtarzają fragment kodu wiele razy &mdash; bez pętli musiałbyś przepisywać tę samą instrukcję ręcznie.</p>
+        <h3>Pętla for</h3>
+        <p>Powtarza kod dla każdego elementu zakresu lub kolekcji. Najczęściej używasz jej z funkcją <code>range()</code>.</p>
+        <pre class="code"><span class="kw">for</span> <span class="kw">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="nu">1</span>, <span class="nu">6</span>):
+    <span class="fn">print</span>(<span class="kw">i</span>, <span class="st">"razy 3 to"</span>, <span class="kw">i</span> * <span class="nu">3</span>)</pre>
+        <p><code>range(1, 6)</code> generuje liczby od 1 do 5 (bez 6) &mdash; górna granica jest zawsze wyłączona.</p>
+        <h3>Pętla while</h3>
+        <p>Powtarza kod, dopóki warunek jest prawdziwy. Używasz jej, gdy nie znasz z góry liczby powtórzeń.</p>
+        <pre class="code"><span class="kw">licznik</span> = <span class="nu">0</span>
+<span class="kw">while</span> <span class="kw">licznik</span> &lt; <span class="nu">3</span>:
+    <span class="fn">print</span>(<span class="st">"Powtórzenie numer"</span>, <span class="kw">licznik</span>)
+    <span class="kw">licznik</span> = <span class="kw">licznik</span> + <span class="nu">1</span></pre>
+        <div class="note">Jeśli zapomnisz zwiększyć licznik w pętli <code>while</code>, warunek nigdy się nie zmieni &mdash; program utknie w nieskończonej pętli.</div>
+        <div class="exercise"><div class="ex-title">Ćwiczenie: tabliczka mnożenia</div>
+<p style="margin:0">Jak pętlą <code>for</code> wypisać tabliczkę mnożenia liczby 5 (od 1 do 10)?</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><p style="margin:0">Rozwiązanie: <code>for i in range(1, 11): print(5 * i)</code></p></div></details></div>
+      </div>
+    </section>
+
+
+    <section id="listy">
+      <div class="inner">
+        <div class="lesson-num">Lekcja 07</div>
+        <h2>Listy</h2>
+        <p>Zmienna zwykle przechowuje jedną wartość. Gdy masz ich wiele (oceny, imiona, wyniki), używasz <strong>listy</strong>: jednej zmiennej, która trzyma wiele wartości po kolei. Zapisujesz ją w nawiasach kwadratowych, a elementy rozdzielasz przecinkami. To, co w innych językach nazywa się tablicą, w Pythonie jest właśnie listą.</p>
+<pre class="code">oceny = [5, 4, 3, 5, 2]
+imiona = ["Ola", "Kuba", "Ewa"]
+pusta = []
+
+print(oceny)
+print(type(oceny))  # &lt;class 'list'&gt;</pre>
+        <h3>Dostęp do elementów</h3>
+        <p>Elementy numerujesz od <strong>0</strong>. Numer, czyli <strong>indeks</strong>, wpisujesz w nawiasach kwadratowych za nazwą listy. Indeks ujemny liczy od końca: <code>-1</code> to ostatni element.</p>
+<pre class="code">imiona = ["Ola", "Kuba", "Ewa"]
+print(imiona[0])   # Ola
+print(imiona[2])   # Ewa
+print(imiona[-1])  # Ewa
+
+imiona[1] = "Marek"   # zmiana elementu
+print(imiona)         # ['Ola', 'Marek', 'Ewa']</pre>
+        <h3>Długość listy: len()</h3>
+        <p>Funkcja <code>len()</code> zwraca liczbę elementów listy. Ostatni indeks to zawsze <code>len(lista) - 1</code>. Odwołanie do indeksu spoza listy kończy program błędem <code>IndexError</code>.</p>
+<pre class="code">imiona = ["Ola", "Marek", "Ewa"]
+print(len(imiona))      # 3
+print(len([]))          # 0
+print(imiona[len(imiona) - 1])  # Ewa</pre>
+        <h3>Dodawanie i usuwanie</h3>
+        <p><code>append(x)</code> dodaje element na koniec listy, a <code>remove(x)</code> usuwa pierwszy element o podanej wartości.</p>
+<pre class="code">zakupy = ["chleb", "mleko"]
+zakupy.append("ser")
+print(zakupy)         # ['chleb', 'mleko', 'ser']
+
+zakupy.remove("mleko")
+print(zakupy)         # ['chleb', 'ser']
+print(len(zakupy))    # 2</pre>
+        <h3>Czy element jest na liście?</h3>
+        <p>Operator <code>in</code> sprawdza, czy wartość występuje na liście, i zwraca <code>True</code> albo <code>False</code>.</p>
+<pre class="code">zakupy = ["chleb", "ser"]
+print("ser" in zakupy)    # True
+print("masło" in zakupy)  # False</pre>
+        <h3>Lista i pętla for</h3>
+        <p>Pętla <code>for</code> potrafi przejść po wszystkich elementach listy. W każdym obiegu zmienna pętli to kolejny element.</p>
+<pre class="code">oceny = [5, 4, 3, 5, 2]
+suma = 0
+for ocena in oceny:
+    suma = suma + ocena
+
+print("Suma:", suma)                  # Suma: 19
+print("Średnia:", suma / len(oceny))  # Średnia: 3.8</pre>
+        <p>Gdy potrzebujesz też numeru elementu, przejdź po indeksach za pomocą <code>range(len(lista))</code>:</p>
+<pre class="code">imiona = ["Ola", "Marek", "Ewa"]
+for i in range(len(imiona)):
+    print(i, imiona[i])
+# 0 Ola
+# 1 Marek
+# 2 Ewa</pre>
+        <div class="note"><strong>Na skróty:</strong> <code>sum(lista)</code> zwraca sumę liczb, <code>max(lista)</code> największą, a <code>min(lista)</code> najmniejszą wartość. Np. <code>max([5, 4, 3])</code> daje <code>5</code>.</div>
+<div class="exercise"><div class="ex-title">Ćwiczenie 1: temperatury</div>
+<p>Dana jest lista <code>temperatury = [12, 15, 9, 18, 14]</code>. Wypisz, ile ma elementów, jaka jest największa temperatura i ile wynosi średnia.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">temperatury = [12, 15, 9, 18, 14]
+print("Liczba pomiarów:", len(temperatury))             # 5
+print("Największa:", max(temperatury))                  # 18
+print("Średnia:", sum(temperatury) / len(temperatury))  # 13.6</pre></div></details></div><div class="exercise"><div class="ex-title">Ćwiczenie 2: lista imion</div>
+<p>Program ma trzy razy zapytać o imię, zapisać je na liście, a na końcu wypisać liczbę imion i całą listę. Użyj pętli <code>for</code> i metody <code>append()</code>.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><pre class="code">imiona = []
+for i in range(3):
+    imie = input("Podaj imię: ")
+    imiona.append(imie)
+
+print("Wpisano", len(imiona), "imion:", imiona)</pre></div></details></div>
+      </div>
+    </section>
+
+    <section id="funkcje">
+      <div class="inner">
+        <div class="lesson-num">Lekcja 08</div>
+        <h2>Funkcje</h2>
+        <p>Funkcja to nazwany fragment kodu, który możesz wywołać wielokrotnie, zamiast powtarzać go za każdym razem. Definiujesz ją słowem <code>def</code>.</p>
+        <pre class="code"><span class="kw">def</span> <span class="fn">powitaj</span>(<span class="kw">imie</span>):
+    <span class="fn">print</span>(<span class="st">"Cześć,"</span>, <span class="kw">imie</span> + <span class="st">"!"</span>)
+
+<span class="fn">powitaj</span>(<span class="st">"Ola"</span>)
+<span class="fn">powitaj</span>(<span class="st">"Kuba"</span>)</pre>
+        <p>Funkcja może też <strong>zwracać</strong> wynik słowem <code>return</code>, żebyś mógł go zapisać w zmiennej lub wykorzystać dalej:</p>
+        <pre class="code"><span class="kw">def</span> <span class="fn">dodaj</span>(<span class="kw">a</span>, <span class="kw">b</span>):
+    <span class="kw">return</span> <span class="kw">a</span> + <span class="kw">b</span>
+
+<span class="kw">wynik</span> = <span class="fn">dodaj</span>(<span class="nu">4</span>, <span class="nu">7</span>)
+<span class="fn">print</span>(<span class="kw">wynik</span>)  <span class="c1"># 11</span></pre>
+        <p><code>imie</code>, <code>a</code> i <code>b</code> to <strong>parametry</strong> &mdash; wartości, które funkcja przyjmuje przy wywołaniu.</p>
+        <div class="exercise"><div class="ex-title">Ćwiczenie: napisz funkcję</div>
+<p style="margin:0">Napisz funkcję <code>czy_parzysta(n)</code>, która zwraca <code>True</code>, jeśli liczba jest parzysta.</p>
+<details class="solution"><summary>Pokaż rozwiązanie</summary><div class="answer"><p style="margin:0">Rozwiązanie: <code>def czy_parzysta(n): return n % 2 == 0</code></p></div></details></div>
+      </div>
+    </section>
+
+    <section id="sciaga">
+      <div class="inner">
+        <div class="lesson-num">Podsumowanie</div>
+        <h2>Ściągawka</h2>
+        <p>Cała składnia z tego kursu na jednej stronie &mdash; wróć tu, kiedy zapomnisz.</p>
+      </div>
+      <div class="cheat-grid" style="max-width:940px">
+        <div class="cheat-card">
+          <h4>print / input</h4>
+          <pre>print("tekst")
+x = input("pytanie: ")</pre>
+        </div>
+        <div class="cheat-card">
+          <h4>Zmienne i typy</h4>
+          <pre>x = 5          # int
+y = 3.14       # float
+s = "tekst"    # str
+b = True       # bool
+l = [1, 2, 3]  # list
+int(s); str(x)</pre>
+        </div>
+        <div class="cheat-card">
+          <h4>Operatory</h4>
+          <pre>+ - * / // % **
+== != > < >= <=
+and  or  not</pre>
+        </div>
+        <div class="cheat-card">
+          <h4>Warunki</h4>
+          <pre>if warunek:
+    ...
+elif warunek2:
+    ...
+else:
+    ...</pre>
+        </div>
+        <div class="cheat-card">
+          <h4>Pętle</h4>
+          <pre>for i in range(5):
+    ...
+while warunek:
+    ...</pre>
+        </div>
+        <div class="cheat-card">
+          <h4>Listy</h4>
+          <pre>oceny = [5, 4, 3]
+oceny[0]       # 5
+len(oceny)     # 3
+oceny.append(2)
+oceny.remove(3)
+3 in oceny
+for o in oceny:
+    ...</pre>
+        </div>
+        <div class="cheat-card">
+          <h4>Funkcje</h4>
+          <pre>def nazwa(param):
+    return param * 2
+
+nazwa(3)</pre>
+        </div>
+      </div>
+    </section>
+
+    <section id="quiz">
+      <div class="inner" style="max-width:940px">
+        <div class="lesson-num">Sprawdź się</div>
+        <h2>Quiz końcowy</h2>
+        <p>Sześć pytań podsumowujących cały kurs.</p>
+
+        <div class="quiz-q" data-correct="b">
+          <p class="q-text">1. Co wypisze <code>print(3 + "3")</code>?</p>
+          <label><input type="radio" name="q1" value="a"> Wypisze <code>33</code></label>
+          <label><input type="radio" name="q1" value="b"> Zgłosi błąd &mdash; nie można dodać liczby do tekstu</label>
+          <label><input type="radio" name="q1" value="c"> Wypisze <code>6</code></label>
+        </div>
+
+        <div class="quiz-q" data-correct="a">
+          <p class="q-text">2. Co zawsze zwraca funkcja <code>input()</code>?</p>
+          <label><input type="radio" name="q2" value="a"> Tekst (str)</label>
+          <label><input type="radio" name="q2" value="b"> Liczbę całkowitą (int)</label>
+          <label><input type="radio" name="q2" value="c"> Wartość logiczną (bool)</label>
+        </div>
+
+        <div class="quiz-q" data-correct="c">
+          <p class="q-text">3. Ile razy wykona się <code>for i in range(2, 5):</code>?</p>
+          <label><input type="radio" name="q3" value="a"> 5 razy</label>
+          <label><input type="radio" name="q3" value="b"> 2 razy</label>
+          <label><input type="radio" name="q3" value="c"> 3 razy</label>
+        </div>
+
+        <div class="quiz-q" data-correct="b">
+          <p class="q-text">4. Co robi <code>17 % 5</code>?</p>
+          <label><input type="radio" name="q4" value="a"> Dzieli i zwraca 3.4</label>
+          <label><input type="radio" name="q4" value="b"> Zwraca resztę z dzielenia, czyli 2</label>
+          <label><input type="radio" name="q4" value="c"> Zwraca dzielenie całkowite, czyli 3</label>
+        </div>
+
+        <div class="quiz-q" data-correct="a">
+          <p class="q-text">5. Co jest niezbędne, by kod należał do wnętrza <code>if</code> w Pythonie?</p>
+          <label><input type="radio" name="q5" value="a"> Wcięcie (spacje na początku linii)</label>
+          <label><input type="radio" name="q5" value="b"> Nawiasy klamrowe <code>{ }</code></label>
+          <label><input type="radio" name="q5" value="c"> Średnik na końcu linii</label>
+        </div>
+
+        <div class="quiz-q" data-correct="b">
+          <p class="q-text">6. Ile wyniesie <code>len([4, 8, 15, 16])</code>?</p>
+          <label><input type="radio" name="q6" value="a"> 3</label>
+          <label><input type="radio" name="q6" value="b"> 4</label>
+          <label><input type="radio" name="q6" value="c"> 16</label>
+        </div>
+
+        <button id="quiz-check">Sprawdź wynik</button>
+        <div id="quiz-result"></div>
+      </div>
+    </section>
+
+    <footer>
+      <p>Kurs obejmuje treści zgodne z podstawą programową informatyki dla liceum (klasa II, zakres podstawowy): zmienne i typy danych, operatory, instrukcje warunkowe, pętle, listy oraz funkcje w języku Python.</p>
+      <p>Kolejny krok: operacje na tekstach (część 2), a potem słowniki i praca z plikami.</p>
+    </footer>
+  </main>
+</div>
+
+<script>
+  // kolorowanie składni w blokach bez ręcznych znaczników
+  function highlight(src){
+    const e = src.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return e.replace(
+      /(#.*$)|(f?"(?:[^"\\\n]|\\.)*"|f?'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b(if|elif|else|for|while|in|def|return|and|or|not|True|False|None)\b|\b(print|input|len|str|int|float|range|type|sum|max|min|append|remove)(?=\()/gm,
+      (m, com, str, num, kw, fn) => {
+        if (com) return '<span class="c1">' + com + '</span>';
+        if (str) return '<span class="st">' + str + '</span>';
+        if (num) return '<span class="nu">' + num + '</span>';
+        if (kw)  return '<span class="kw">' + kw + '</span>';
+        return '<span class="fn">' + fn + '</span>';
+      });
+  }
+  document.querySelectorAll('pre.code').forEach(p => {
+    if (!p.querySelector('span')) p.innerHTML = highlight(p.textContent);
+  });
+
+  // active link highlight
+  const links = document.querySelectorAll('nav.toc a');
+  const sections = [...links].map(l => document.querySelector(l.getAttribute('href')));
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const id = '#' + entry.target.id;
+      const link = document.querySelector(`nav.toc a[href="${id}"]`);
+      if (!link) return;
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-40% 0px -50% 0px' });
+  sections.forEach(s => s && io.observe(s));
+
+  // quiz scoring
+  document.getElementById('quiz-check').addEventListener('click', () => {
+    const questions = document.querySelectorAll('.quiz-q');
+    let score = 0;
+    questions.forEach(q => {
+      const correct = q.dataset.correct;
+      const checked = q.querySelector('input:checked');
+      q.classList.remove('correct', 'incorrect');
+      if (checked && checked.value === correct) {
+        score++;
+        q.classList.add('correct');
+      } else {
+        q.classList.add('incorrect');
+      }
+    });
+    const result = document.getElementById('quiz-result');
+    result.textContent = `Wynik: ${score} / ${questions.length}` +
+      (score === questions.length ? ' — komplet! 🎉' : score >= questions.length - 1 ? ' — bardzo dobrze!' : ' — wróć do lekcji i spróbuj ponownie.');
+  });
+</script>
+
+</body>
+</html>
