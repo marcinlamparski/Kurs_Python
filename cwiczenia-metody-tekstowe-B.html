@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python: metody tekstowe, zestaw ćwiczeń B</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{ --bg:#EFF1EA; --paper:#F8F8F4; --ink:#1B231E; --ink-soft:#4B564F; --line:#D9DCD1; --teal-deep:#164E46; --mustard-deep:#9C7614; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',sans-serif; font-size:16px; line-height:1.6; }
+  main{ max-width:760px; margin:0 auto; padding:48px 20px 64px; }
+  .kicker{ font-family:'JetBrains Mono',monospace; font-size:0.85rem; color:var(--teal-deep); margin-bottom:10px; }
+  h1{ font-family:'Space Grotesk',sans-serif; font-size:2rem; line-height:1.15; margin:0 0 14px; }
+  .lead{ color:var(--ink-soft); margin:0 0 22px; }
+  .fields{ display:flex; flex-wrap:wrap; gap:10px 28px; margin:0 0 28px; padding:14px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); font-size:0.95rem; }
+  .fields span{ min-width:220px; }
+  .exercise{ background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:16px 18px; margin:0 0 12px; break-inside:avoid; }
+  .ex-title{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:0.98rem; color:var(--teal-deep); margin-bottom:6px; }
+  .exercise p{ margin:0; font-size:0.97rem; }
+  code{ font-family:'JetBrains Mono',monospace; background:#E3E6DB; padding:1px 6px; border-radius:5px; font-size:0.88em; white-space:pre-wrap; }
+  @media print{
+    body{ background:#fff; font-size:12pt; }
+    main{ padding:0; max-width:none; }
+    .exercise{ background:#fff; border-color:#999; }
+    code{ background:#eee; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="kicker">Python, część 2 &mdash; lekcja 05</div>
+  <h1>Metody tekstowe: zestaw ćwiczeń B</h1>
+  <p class="lead">Napisz samodzielnie programy rozwiązujące poniższe zadania i przetestuj je na podanych danych. W tytule każdego zadania znajdziesz metody, których powinieneś użyć.</p>
+  <div class="fields"><span>Imię i nazwisko: ..............................</span><span>Klasa: ..........</span><span>Data: ..............</span></div>
+<div class="exercise"><div class="ex-title">Zadanie B1: wielkie i małe litery (upper, lower)</div>
+<p style="margin:0">Dla tekstu <code>"Kurs Pythona dla Początkujących"</code> wypisz go najpierw samymi wielkimi, a potem samymi małymi literami.</p></div>
+<div class="exercise"><div class="ex-title">Zadanie B2: nazwisko z dużej litery (capitalize)</div>
+<p style="margin:0">Użytkownik wpisuje nazwisko w dowolny sposób, np. <code>nOWAK</code> albo <code>KOWALSKI</code>. Wypisz je w poprawnej postaci: pierwsza litera wielka, pozostałe małe.</p></div>
+<div class="exercise"><div class="ex-title">Zadanie B3: spacje na brzegach (strip)</div>
+<p style="margin:0">Użytkownik przez pomyłkę wpisał nazwę miasta ze spacjami na początku i na końcu, np. <code>"  Rybnik "</code>. Wypisz długość wpisanego tekstu przed usunięciem spacji i po jego oczyszczeniu.</p></div>
+<div class="exercise"><div class="ex-title">Zadanie B4: podmiana fragmentów (replace)</div>
+<p style="margin:0">W tekście <code>"Kuba lubi lody"</code> zamień słowo <code>lody</code> na <code>pizzę</code>. Potem w dacie <code>"12/05/2026"</code> zamień ukośniki na myślniki.</p></div>
+<div class="exercise"><div class="ex-title">Zadanie B5: liczenie wystąpień (count)</div>
+<p style="margin:0">Policz, ile razy w słowie <code>"abrakadabra"</code> występuje litera <code>a</code>, a ile razy fragment <code>ra</code>.</p></div>
+<div class="exercise"><div class="ex-title">Zadanie B6: szukanie znaku (find)</div>
+<p style="margin:0">Użytkownik wpisuje adres strony internetowej. Sprawdź, czy zawiera kropkę. Jeśli nie, wypisz „Brak kropki”, a jeśli tak, wypisz pozycję (indeks) pierwszej kropki. Przetestuj program na wpisach <code>example.com</code> i <code>example</code>.</p></div>
+<div class="exercise"><div class="ex-title">Zadanie B7: początek i koniec (startswith, endswith)</div>
+<p style="margin:0">Dla nazwy pliku <code>"raport.pdf"</code> sprawdź, czy kończy się na <code>.pdf</code>. Dla adresu <code>"http://example.com"</code> sprawdź, czy zaczyna się od <code>https://</code>. Dla numeru <code>"+48601234567"</code> sprawdź, czy zaczyna się od <code>+48</code>. Wypisz trzy wyniki.</p></div>
+<div class="exercise"><div class="ex-title">Zadanie B8: sprawdzanie kodu pocztowego (isdigit)</div>
+<p style="margin:0">Użytkownik wpisuje kod pocztowy bez myślnika. Program ma sprawdzić, czy to dokładnie 5 cyfr. Przetestuj go na wpisach <code>44200</code>, <code>4420</code> i <code>44a00</code>.</p></div>
+<div class="exercise"><div class="ex-title">Zadanie B9: samo litery (isalpha)</div>
+<p style="margin:0">Użytkownik wpisuje nazwę miasta (jedno słowo). Jeśli zawiera ona coś poza literami (np. cyfrę), wypisz „Nazwa może zawierać tylko litery”, a w przeciwnym razie „Dziękujemy!”. Przetestuj program na wpisach <code>Rybnik</code> i <code>Rybnik1</code>.</p></div>
+<div class="exercise"><div class="ex-title">Zadanie B10: porządki w danych (strip, capitalize, replace)</div>
+<p style="margin:0">Dane wpisane przez użytkownika to <code>"  mARIA nOWAK  "</code>. Napraw je tak, aby wypisać <em>Maria nowak</em>, a potem zamień wszystkie spacje na myślniki.</p></div>
+<div class="exercise"><div class="ex-title">Zadanie B11: kod grupy (strip, upper, isalpha, len)</div>
+<p style="margin:0">Użytkownik wpisuje kod grupy. Usuń spacje z początku i końca wpisanego kodu i zamień go na wielkie litery. Przyjmij kod tylko wtedy, gdy ma dokładnie 3 znaki i składa się wyłącznie z liter. Przetestuj program na wpisach <code> abc </code> i <code>ab1</code>.</p></div>
+</main>
+</body>
+</html>
